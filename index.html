@@ -3,149 +3,54 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#101827">
 <title>Breakout Radar · BSC</title>
-
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;
-  padding:20px 16px 50px;
-  background:#101827;
-  color:#f8fafc;
-  font-family:-apple-system,BlinkMacSystemFont,
-    "Segoe UI",sans-serif;
-}
+body{margin:0;padding:20px 16px 50px;background:#101827;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 main{max-width:680px;margin:auto}
 h1{color:#f0b90b;margin:0 0 5px}
 .sub,.muted{color:#94a3b8}
 .sub{margin-top:0}
-.panel,.pool{
-  background:#1e293b;
-  border-radius:16px;
-  padding:17px;
-  margin-top:15px;
-}
-button{
-  background:#f0b90b;
-  color:#111827;
-  border:0;
-  border-radius:10px;
-  padding:12px 14px;
-  font-weight:700;
-  font-size:15px;
-  cursor:pointer;
-}
+.panel,.pool{background:#1e293b;border-radius:16px;padding:17px;margin-top:15px}
+button{background:#f0b90b;color:#111827;border:0;border-radius:10px;padding:12px 14px;font-weight:700;font-size:15px;cursor:pointer}
 button:disabled{opacity:.5}
 .scan{width:100%;margin-top:10px}
-.pool h3{
-  margin:0 0 9px;
-  color:#f0b90b;
-  overflow-wrap:anywhere;
-}
-.metrics{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-  margin:13px 0;
-}
-.label{
-  display:block;
-  font-size:12px;
-  color:#94a3b8;
-  margin-bottom:3px;
-}
-.value{
-  font-weight:600;
-  overflow-wrap:anywhere;
-}
+.pool h3{margin:0 0 9px;color:#f0b90b;overflow-wrap:anywhere}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:13px 0}
+.label{display:block;font-size:12px;color:#94a3b8;margin-bottom:3px}
+.value{font-weight:600;overflow-wrap:anywhere}
 .up{color:#4ade80}
 .down{color:#fb7185}
-.address{
-  font-size:12px;
-  overflow-wrap:anywhere;
-  background:#0f172a;
-  padding:10px;
-  border-radius:8px;
-  margin:8px 0;
-}
-.actions{
-  display:flex;
-  gap:8px;
-  align-items:center;
-  flex-wrap:wrap;
-}
-.actions a{
-  color:#f0b90b;
-  font-weight:600;
-  font-size:14px;
-}
-.status{
-  font-size:14px;
-  color:#cbd5e1;
-  white-space:pre-line;
-}
+.address{font-size:12px;overflow-wrap:anywhere;background:#0f172a;padding:10px;border-radius:8px;margin:8px 0}
+.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.actions a,.pool-link{color:#f0b90b;font-weight:600;font-size:14px}
+.status{font-size:14px;color:#cbd5e1;white-space:pre-line}
 .warning{color:#fbbf24;font-size:13px}
-.tag{
-  display:inline-block;
-  font-size:11px;
-  color:#cbd5e1;
-  background:#334155;
-  padding:4px 7px;
-  border-radius:6px;
-  margin-right:5px;
-  margin-bottom:5px;
-}
-.score-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  margin:12px 0 7px;
-}
-.score-number{
-  font-size:23px;
-  font-weight:800;
-}
-.score-track{
-  height:9px;
-  border-radius:20px;
-  background:#475569;
-  overflow:hidden;
-}
-.score-fill{
-  height:100%;
-  border-radius:20px;
-}
+.tag{display:inline-block;font-size:11px;color:#cbd5e1;background:#334155;padding:4px 7px;border-radius:6px;margin-right:5px;margin-bottom:5px}
+.score-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0 7px}
+.score-number{font-size:23px;font-weight:800}
+.score-track{height:9px;border-radius:20px;background:#475569;overflow:hidden}
+.score-fill{height:100%;border-radius:20px}
 small{color:#94a3b8}
 </style>
 </head>
-
 <body>
 <main>
 <h1>Breakout Radar</h1>
 <p class="sub">BNB Smart Chain · DEX Discovery</p>
 
 <section class="panel">
-  <strong>Scanner V1.2</strong>
-  <p class="muted">
-    Trending · New · High volume
-  </p>
-
-  <button id="scan" class="scan">
-    Scan BSC
-  </button>
-
-  <p id="status" class="status">
-    Ready. Tap Scan BSC to load live pools.
-  </p>
-
-  <small>
-    Scores are experimental screening signals,
-    not trading recommendations or contract
-    safety checks.
-  </small>
+<strong>Scanner V1.3</strong>
+<p class="muted">Trending · New · High volume</p>
+<button id="scan" class="scan">Scan BSC</button>
+<p id="status" class="status">Ready to scan.</p>
+<small>
+Experimental breakout scoring. Market cap may be
+unavailable. Pool age is not token launch age.
+No contract safety checks yet.
+</small>
 </section>
 
 <div id="results"></div>
@@ -156,499 +61,468 @@ small{color:#94a3b8}
 
 const API='https://api.geckoterminal.com/api/v2';
 
-const endpoints=[
-  ['Trending','/networks/bsc/trending_pools'],
-  ['New','/networks/bsc/new_pools'],
-  ['High volume','/networks/bsc/pools?sort=h24_volume_usd_desc']
+const feeds=[
+ ['Trending','/networks/bsc/trending_pools'],
+ ['New','/networks/bsc/new_pools'],
+ ['High volume','/networks/bsc/pools?sort=h24_volume_usd_desc']
 ];
 
-const COMMON=new Set([
-  // USDT
-  '0x55d398326f99059ff775485246999027b3197955',
-  // USDC
-  '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
-  // BUSD
-  '0xe9e7cea3dedca5984780bafc599bd69add087d56',
-  // WBNB
-  '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c'
+// Known BSC major-asset contract addresses.
+// This is not a complete registry of all wrapped assets.
+const MAJOR=new Set([
+ // WBNB
+ '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',
+ // USDT
+ '0x55d398326f99059ff775485246999027b3197955',
+ // USDC
+ '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
+ // BUSD
+ '0xe9e7cea3dedca5984780bafc599bd69add087d56',
+ // BTCB
+ '0x7130d2a12b9bcbbfae4f2634d864a1ee1ce3ead9',
+ // Binance-Peg ETH
+ '0x2170ed0880ac9a755fd29b2688956bd959f933f8',
+ // DAI
+ '0x1afd23bcfbf3a0d65ad6c65bd01dbb5e59a86e72'
 ]);
 
 const $=id=>document.getElementById(id);
 
-function contractFromId(id){
-  if(typeof id!=='string')return null;
-  const match=id.match(/0x[a-fA-F0-9]{40}$/);
-  return match?match[0]:null;
+function addressFromId(id){
+ if(typeof id!=='string')return null;
+ const match=id.match(/0x[a-fA-F0-9]{40}$/);
+ return match?match[0]:null;
 }
 
-function numberOrNaN(value){
-  if(
-    value===null ||
-    value===undefined ||
-    value===''
-  ){
-    return NaN;
-  }
-  return Number(value);
+function num(value){
+ if(value===null||value===undefined||value===''){
+  return NaN;
+ }
+ const n=Number(value);
+ return Number.isFinite(n)?n:NaN;
 }
 
-function fmtUsd(value){
-  const n=numberOrNaN(value);
-  if(!Number.isFinite(n))return 'N/A';
-
-  if(n>0&&n<0.0001){
-    return '$'+n.toPrecision(4);
-  }
-
-  return '$'+n.toLocaleString('en-US',{
-    maximumFractionDigits:n<1?6:2
-  });
+function usd(value){
+ const n=num(value);
+ if(!Number.isFinite(n))return 'N/A';
+ if(n>0&&n<0.0001)return '$'+n.toPrecision(4);
+ return '$'+n.toLocaleString('en-US',{
+  maximumFractionDigits:n<1?6:2
+ });
 }
 
-function pickToken(pool){
-  const rel=pool.relationships||{};
+function compactUsd(value){
+ const n=num(value);
+ if(!Number.isFinite(n)||n<0)return 'N/A';
+ if(n>=1e9)return '$'+(n/1e9).toFixed(2)+'B';
+ if(n>=1e6)return '$'+(n/1e6).toFixed(2)+'M';
+ if(n>=1e3)return '$'+(n/1e3).toFixed(1)+'K';
+ return usd(n);
+}
 
-  const base=contractFromId(
-    rel.base_token?.data?.id
-  );
+function tokenAddresses(pool){
+ const r=pool.relationships||{};
+ return {
+  base:addressFromId(r.base_token?.data?.id),
+  quote:addressFromId(r.quote_token?.data?.id)
+ };
+}
 
-  const quote=contractFromId(
-    rel.quote_token?.data?.id
-  );
+function identifyToken(pool){
+ const {base,quote}=tokenAddresses(pool);
+ if(!base||!quote)return null;
 
-  if(!base||!quote)return null;
+ const baseMajor=MAJOR.has(base.toLowerCase());
+ const quoteMajor=MAJOR.has(quote.toLowerCase());
 
-  const baseCommon=COMMON.has(base.toLowerCase());
-  const quoteCommon=COMMON.has(quote.toLowerCase());
+ // Exclude major-asset-only pairs.
+ if(baseMajor&&quoteMajor)return {
+  excluded:true
+ };
 
-  if(baseCommon&&quoteCommon)return null;
-
-  if(baseCommon&&!quoteCommon){
-    return {
-      address:quote,
-      side:'quote',
-      ambiguous:false
-    };
-  }
-
-  if(quoteCommon&&!baseCommon){
-    return {
-      address:base,
-      side:'base',
-      ambiguous:false
-    };
-  }
-
+ // The smaller token is usually the one we want.
+ if(baseMajor&&!quoteMajor){
   return {
-    address:base,
-    side:'base',
-    ambiguous:true
+   address:quote,
+   side:'quote',
+   ambiguous:false
   };
+ }
+
+ if(quoteMajor&&!baseMajor){
+  return {
+   address:base,
+   side:'base',
+   ambiguous:false
+  };
+ }
+
+ // Two non-major tokens: do not assume certainty.
+ return {
+  address:base,
+  side:'base',
+  ambiguous:true
+ };
 }
 
-function breakoutScore(pool){
-  const a=pool.attributes||{};
+function poolAge(created){
+ if(!created)return 'N/A';
 
-  const change=numberOrNaN(
-    a.price_change_percentage?.h24
-  );
+ const time=Date.parse(created);
+ if(!Number.isFinite(time))return 'N/A';
 
-  const volume=numberOrNaN(
-    a.volume_usd?.h24
-  );
+ const elapsed=Date.now()-time;
+ if(elapsed<0)return 'N/A';
 
-  const liquidity=numberOrNaN(
-    a.reserve_in_usd
-  );
-
-  const ratio=
-    Number.isFinite(volume) &&
-    Number.isFinite(liquidity) &&
-    liquidity>0
-    ?volume/liquidity
-    :NaN;
-
-  let score=0;
-
-  if(
-    Number.isFinite(change) &&
-    change>=-5 &&
-    change<=15
-  ){
-    score+=25;
-  }
-
-  if(
-    Number.isFinite(volume) &&
-    volume>=50000
-  ){
-    score+=25;
-  }
-
-  if(
-    Number.isFinite(liquidity) &&
-    liquidity>=25000
-  ){
-    score+=25;
-  }
-
-  if(
-    Number.isFinite(ratio) &&
-    ratio>=0.5
-  ){
-    score+=25;
-  }
-
-  return {score,ratio};
+ const days=Math.floor(elapsed/86400000);
+ if(days===0){
+  const hours=Math.floor(elapsed/3600000);
+  return hours<1?'< 1 hour':hours+' hours';
+ }
+ return days+' days';
 }
 
-async function getFeed(label,path){
-  const response=await fetch(API+path,{
-    headers:{Accept:'application/json'},
-    cache:'no-store'
-  });
+function scorePool(pool){
+ const a=pool.attributes||{};
+ const change=num(a.price_change_percentage?.h24);
+ const volume=num(a.volume_usd?.h24);
+ const liquidity=num(a.reserve_in_usd);
 
-  if(!response.ok){
-    throw new Error(
-      label+' HTTP '+response.status
-    );
-  }
+ const ratio=
+  Number.isFinite(volume)&&
+  Number.isFinite(liquidity)&&
+  liquidity>0
+  ?volume/liquidity:NaN;
 
-  const json=await response.json();
+ let score=0;
 
-  if(!Array.isArray(json.data)){
-    throw new Error(
-      label+' returned unexpected data'
-    );
-  }
+ if(Number.isFinite(change)&&change>=-5&&change<=15){
+  score+=25;
+ }
+ if(Number.isFinite(volume)&&volume>=50000){
+  score+=25;
+ }
+ if(Number.isFinite(liquidity)&&liquidity>=25000){
+  score+=25;
+ }
+ if(Number.isFinite(ratio)&&ratio>=0.5){
+  score+=25;
+ }
 
-  return json.data.map(pool=>({
-    ...pool,
-    feed:label
-  }));
+ return {score,ratio};
 }
 
-async function copyAddress(address,button){
-  try{
-    if(
-      navigator.clipboard &&
-      window.isSecureContext
-    ){
-      await navigator.clipboard.writeText(address);
-    }else{
-      const field=document.createElement('textarea');
-      field.value=address;
-      field.style.position='fixed';
-      field.style.opacity='0';
-      document.body.append(field);
-      field.select();
+async function loadFeed(label,path){
+ const response=await fetch(API+path,{
+  headers:{Accept:'application/json'},
+  cache:'no-store'
+ });
 
-      const ok=document.execCommand('copy');
-      field.remove();
+ if(!response.ok){
+  throw new Error('HTTP '+response.status);
+ }
 
-      if(!ok)throw new Error('Copy unavailable');
-    }
+ const json=await response.json();
+ if(!Array.isArray(json.data)){
+  throw new Error('Unexpected response');
+ }
 
-    button.textContent='Copied!';
+ return json.data.map(pool=>({...pool,feed:label}));
+}
 
-    setTimeout(()=>{
-      button.textContent='Copy contract';
-    },1600);
-
-  }catch(error){
-    alert(
-      'Copy failed. Long-press the address to copy.'
-    );
+async function copyContract(address,button){
+ try{
+  if(navigator.clipboard&&window.isSecureContext){
+   await navigator.clipboard.writeText(address);
+  }else{
+   const field=document.createElement('textarea');
+   field.value=address;
+   field.style.position='fixed';
+   field.style.opacity='0';
+   document.body.append(field);
+   field.select();
+   const success=document.execCommand('copy');
+   field.remove();
+   if(!success)throw new Error('Copy unavailable');
   }
+
+  button.textContent='Copied!';
+  setTimeout(()=>{
+   button.textContent='Copy contract';
+  },1600);
+
+ }catch(error){
+  alert('Copy failed. Long-press the address to copy.');
+ }
 }
 
-function addMetric(parent,label,value,cls=''){
-  const item=document.createElement('div');
+function metric(grid,label,value,cls=''){
+ const box=document.createElement('div');
+ const heading=document.createElement('span');
+ heading.className='label';
+ heading.textContent=label;
 
-  const l=document.createElement('span');
-  l.className='label';
-  l.textContent=label;
+ const text=document.createElement('span');
+ text.className='value '+cls;
+ text.textContent=value;
 
-  const v=document.createElement('span');
-  v.className='value '+cls;
-  v.textContent=value;
-
-  item.append(l,v);
-  parent.append(item);
+ box.append(heading,text);
+ grid.append(box);
 }
 
-function renderPool(pool){
-  const a=pool.attributes||{};
-  const token=pickToken(pool);
-  const signal=breakoutScore(pool);
+function render(pool,token,signal){
+ const a=pool.attributes||{};
+ const card=document.createElement('article');
+ card.className='pool';
 
-  const card=document.createElement('article');
-  card.className='pool';
+ const name=document.createElement('h3');
+ name.textContent=a.name||'Unnamed pool';
+ card.append(name);
 
-  const name=document.createElement('h3');
-  name.textContent=a.name||'Unnamed pool';
-  card.append(name);
-
+ for(const text of [pool.feed,'BSC']){
   const tag=document.createElement('span');
   tag.className='tag';
-  tag.textContent=pool.feed;
+  tag.textContent=text;
   card.append(tag);
+ }
 
-  const chain=document.createElement('span');
-  chain.className='tag';
-  chain.textContent='BSC';
-  card.append(chain);
+ const scoreRow=document.createElement('div');
+ scoreRow.className='score-row';
 
-  // Breakout score
-  const scoreRow=document.createElement('div');
-  scoreRow.className='score-row';
+ const scoreLabel=document.createElement('strong');
+ scoreLabel.textContent='Breakout Score';
 
-  const scoreLabel=document.createElement('strong');
-  scoreLabel.textContent='Breakout Score';
+ const scoreValue=document.createElement('span');
+ scoreValue.className='score-number';
+ scoreValue.textContent=signal.score+'/100';
 
-  const scoreValue=document.createElement('span');
-  scoreValue.className='score-number';
-  scoreValue.textContent=signal.score+'/100';
+ const color=
+  signal.score>=75?'#4ade80':
+  signal.score>=50?'#f0b90b':'#fb7185';
 
-  const scoreColor=
-    signal.score>=75?'#4ade80':
-    signal.score>=50?'#f0b90b':
-    '#fb7185';
+ scoreValue.style.color=color;
+ scoreRow.append(scoreLabel,scoreValue);
+ card.append(scoreRow);
 
-  scoreValue.style.color=scoreColor;
+ const track=document.createElement('div');
+ track.className='score-track';
 
-  scoreRow.append(scoreLabel,scoreValue);
-  card.append(scoreRow);
+ const fill=document.createElement('div');
+ fill.className='score-fill';
+ fill.style.width=signal.score+'%';
+ fill.style.background=color;
 
-  const track=document.createElement('div');
-  track.className='score-track';
+ track.append(fill);
+ card.append(track);
 
-  const fill=document.createElement('div');
-  fill.className='score-fill';
-  fill.style.width=signal.score+'%';
-  fill.style.background=scoreColor;
+ const grid=document.createElement('div');
+ grid.className='metrics';
 
-  track.append(fill);
-  card.append(track);
+ const change=num(a.price_change_percentage?.h24);
 
-  // Pool metrics
-  const grid=document.createElement('div');
-  grid.className='metrics';
+ // Pool market cap is generally associated with
+ // its base token. Do not label it as quote-token
+ // market cap when the quote token is selected.
+ const marketCap=token?.side==='base'
+  ?compactUsd(a.market_cap_usd)
+  :'N/A';
 
-  const change=numberOrNaN(
-    a.price_change_percentage?.h24
-  );
+ metric(grid,'Market cap',marketCap);
+ metric(grid,'Pool age',poolAge(a.pool_created_at));
 
-  addMetric(
-    grid,
-    '24h price change',
-    Number.isFinite(change)
-      ?(change>0?'+':'')+
-       change.toFixed(2)+'%'
-      :'N/A',
-    Number.isFinite(change)
-      ?change>=0?'up':'down'
-      :''
-  );
+ metric(
+  grid,
+  '24h price change (base)',
+  Number.isFinite(change)
+   ?(change>0?'+':'')+change.toFixed(2)+'%'
+   :'N/A',
+  Number.isFinite(change)
+   ?change>=0?'up':'down':''
+ );
 
-  addMetric(
-    grid,
-    'Base token price',
-    fmtUsd(a.base_token_price_usd)
-  );
+ metric(
+  grid,'Base token price',
+  usd(a.base_token_price_usd)
+ );
 
-  addMetric(
-    grid,
-    'Liquidity',
-    fmtUsd(a.reserve_in_usd)
-  );
+ metric(grid,'Liquidity',usd(a.reserve_in_usd));
+ metric(grid,'24h volume',usd(a.volume_usd?.h24));
 
-  addMetric(
-    grid,
-    '24h volume',
-    fmtUsd(a.volume_usd?.h24)
-  );
+ metric(
+  grid,'Volume / liquidity',
+  Number.isFinite(signal.ratio)
+   ?signal.ratio.toFixed(2)+'x':'N/A'
+ );
 
-  addMetric(
-    grid,
-    'Volume / liquidity',
-    Number.isFinite(signal.ratio)
-      ?signal.ratio.toFixed(2)+'x'
-      :'N/A'
-  );
+ card.append(grid);
 
-  card.append(grid);
+ const label=document.createElement('span');
+ label.className='label';
+ label.textContent='Token contract (BEP-20)';
+ card.append(label);
 
-  // Contract
-  const contractLabel=document.createElement('span');
-  contractLabel.className='label';
-  contractLabel.textContent='Token contract (BEP-20)';
-  card.append(contractLabel);
+ if(token){
+  const address=document.createElement('div');
+  address.className='address';
+  address.textContent=token.address;
+  card.append(address);
 
-  if(token){
-    const address=document.createElement('div');
-    address.className='address';
-    address.textContent=token.address;
-    card.append(address);
+  const actions=document.createElement('div');
+  actions.className='actions';
 
-    const actions=document.createElement('div');
-    actions.className='actions';
+  const copy=document.createElement('button');
+  copy.textContent='Copy contract';
+  copy.addEventListener('click',()=>{
+   copyContract(token.address,copy);
+  });
+  actions.append(copy);
 
-    const copy=document.createElement('button');
-    copy.textContent='Copy contract';
+  const explorer=document.createElement('a');
+  explorer.href=
+   'https://bscscan.com/token/'+
+   encodeURIComponent(token.address);
+  explorer.target='_blank';
+  explorer.rel='noopener noreferrer';
+  explorer.textContent='BscScan';
+  actions.append(explorer);
 
-    copy.addEventListener('click',()=>{
-      copyAddress(token.address,copy);
-    });
+  card.append(actions);
 
-    actions.append(copy);
-
-    const bsc=document.createElement('a');
-    bsc.href=
-      'https://bscscan.com/token/'+
-      encodeURIComponent(token.address);
-
-    bsc.target='_blank';
-    bsc.rel='noopener noreferrer';
-    bsc.textContent='BscScan';
-
-    actions.append(bsc);
-    card.append(actions);
-
-    if(token.ambiguous){
-      const warning=document.createElement('p');
-      warning.className='warning';
-      warning.textContent=
-        'Both tokens are non-standard. '+
-        'Base token selected; verify before trading.';
-      card.append(warning);
-    }
-
-    if(token.side==='quote'){
-      const warning=document.createElement('p');
-      warning.className='warning';
-      warning.textContent=
-        'Quote token selected. Displayed base-token '+
-        'price and change may not represent this token.';
-      card.append(warning);
-    }
-
-  }else{
-    const warning=document.createElement('p');
-    warning.className='warning';
-    warning.textContent=
-      'Target token cannot be reliably identified. '+
-      'Contract copying disabled.';
-    card.append(warning);
+  if(token.ambiguous){
+   const warning=document.createElement('p');
+   warning.className='warning';
+   warning.textContent=
+    'Two non-major tokens. Base selected; '+
+    'verify the intended contract before trading.';
+   card.append(warning);
   }
 
-  // GeckoTerminal link
-  const poolAddress=contractFromId(pool.id);
-
-  if(poolAddress){
-    const link=document.createElement('a');
-
-    link.href=
-      'https://www.geckoterminal.com/bsc/pools/'+
-      encodeURIComponent(poolAddress);
-
-    link.target='_blank';
-    link.rel='noopener noreferrer';
-    link.textContent='View pool on GeckoTerminal';
-
-    link.style.cssText=
-      'display:inline-block;margin-top:12px;color:#f0b90b';
-
-    card.append(link);
+  if(token.side==='quote'){
+   const warning=document.createElement('p');
+   warning.className='warning';
+   warning.textContent=
+    'Quote token selected. Base-token price, '+
+    '24h change and pool market cap may not '+
+    'describe the selected token.';
+   card.append(warning);
   }
+ }else{
+  const warning=document.createElement('p');
+  warning.className='warning';
+  warning.textContent=
+   'Token identity unavailable. Copy disabled.';
+  card.append(warning);
+ }
 
-  return card;
+ const poolAddress=addressFromId(pool.id);
+ if(poolAddress){
+  const link=document.createElement('a');
+  link.className='pool-link';
+  link.href=
+   'https://www.geckoterminal.com/bsc/pools/'+
+   encodeURIComponent(poolAddress);
+  link.target='_blank';
+  link.rel='noopener noreferrer';
+  link.textContent='View pool on GeckoTerminal';
+  link.style.display='inline-block';
+  link.style.marginTop='12px';
+  card.append(link);
+ }
+
+ return card;
 }
 
 async function scan(){
-  const button=$('scan');
-  const status=$('status');
-  const results=$('results');
+ const button=$('scan');
+ const status=$('status');
+ const results=$('results');
 
-  button.disabled=true;
-  results.replaceChildren();
+ button.disabled=true;
+ results.replaceChildren();
+ status.textContent='Scanning BSC pools...';
 
-  status.textContent=
-    'Scanning and scoring BSC pools...';
+ try{
+  const responses=await Promise.allSettled(
+   feeds.map(([label,path])=>loadFeed(label,path))
+  );
 
-  try{
-    const settled=await Promise.allSettled(
-      endpoints.map(([label,path])=>
-        getFeed(label,path)
-      )
+  const unique=new Map();
+  const errors=[];
+
+  responses.forEach((result,index)=>{
+   if(result.status==='rejected'){
+    errors.push(
+     feeds[index][0]+': '+
+     result.reason.message
     );
+    return;
+   }
 
-    const errors=[];
-    const unique=new Map();
+   result.value.forEach(pool=>{
+    if(pool.id&&!unique.has(pool.id)){
+     unique.set(pool.id,pool);
+    }
+   });
+  });
 
-    settled.forEach((result,index)=>{
-      if(result.status==='rejected'){
-        errors.push(
-          endpoints[index][0]+': '+
-          result.reason.message
-        );
-        return;
-      }
+  let excluded=0;
 
-      result.value.forEach(pool=>{
-        if(pool.id&&!unique.has(pool.id)){
-          unique.set(pool.id,pool);
-        }
-      });
-    });
+  const ranked=[...unique.values()]
+   .map(pool=>{
+    const token=identifyToken(pool);
 
-    // Score every retrieved pool before ranking.
-    const ranked=[...unique.values()]
-      .map(pool=>({
-        pool,
-        signal:breakoutScore(pool)
-      }))
-      .sort((a,b)=>{
-        const scoreDifference=
-          b.signal.score-a.signal.score;
-
-        if(scoreDifference!==0){
-          return scoreDifference;
-        }
-
-        return (
-          Number(b.pool.attributes?.volume_usd?.h24||0)-
-          Number(a.pool.attributes?.volume_usd?.h24||0)
-        );
-      });
-
-    const shown=ranked.slice(0,30);
-
-    shown.forEach(item=>{
-      results.append(renderPool(item.pool));
-    });
-
-    status.textContent=
-      'Discovered '+unique.size+
-      ' unique pools. Scored '+ranked.length+
-      '. Showing the top '+shown.length+
-      ' by Breakout Score.'+
-      (errors.length
-        ?'\nFeed warnings: '+errors.join('; ')
-        :''
-      );
-
-    if(!shown.length){
-      status.textContent+=
-        '\nNo pools returned. Try again later.';
+    if(token?.excluded){
+     excluded++;
+     return null;
     }
 
-  }catch(error){
-    status.textContent=
-      'Scanner error: '+error.message;
-  }finally{
-    button.disabled=false;
+    return {
+     pool,
+     token,
+     signal:scorePool(pool)
+    };
+   })
+   .filter(Boolean)
+   .sort((a,b)=>{
+    const difference=
+     b.signal.score-a.signal.score;
+
+    if(difference!==0)return difference;
+
+    return (
+     num(b.pool.attributes?.volume_usd?.h24)||0
+    )-(
+     num(a.pool.attributes?.volume_usd?.h24)||0
+    );
+   });
+
+  const shown=ranked.slice(0,30);
+
+  shown.forEach(item=>{
+   results.append(
+    render(item.pool,item.token,item.signal)
+   );
+  });
+
+  status.textContent=
+   'Discovered '+unique.size+' unique pools.\n'+
+   'Excluded '+excluded+' major-asset pairs.\n'+
+   'Ranked '+ranked.length+' pools.\n'+
+   'Showing top '+shown.length+'.'+
+   (errors.length
+    ?'\nFeed warnings: '+errors.join('; ')
+    :'');
+
+  if(!shown.length){
+   status.textContent+=
+    '\nNo qualifying pools returned.';
   }
+
+ }catch(error){
+  status.textContent='Scanner error: '+error.message;
+ }finally{
+  button.disabled=false;
+ }
 }
 
 $('scan').addEventListener('click',scan);
