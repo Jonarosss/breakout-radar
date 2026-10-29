@@ -1,235 +1,729 @@
 
+
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101827">
-  <title>Breakout Radar - BSC</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<meta charset="UTF-8">
 
-    body {
-      margin: 0;
-      padding: 20px;
-      background: #101827;
-      color: #f8fafc;
-      font-family: -apple-system, BlinkMacSystemFont,
-                   "Segoe UI", sans-serif;
-    }
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-    h1 {
-      color: #f0b90b;
-      margin-bottom: 5px;
-    }
+<meta name="theme-color" content="#101827">
 
-    .subtitle {
-      color: #94a3b8;
-      margin-top: 0;
-    }
+<title>Breakout Radar · BSC</title>
 
-    .card {
-      background: #1e293b;
-      padding: 20px;
-      border-radius: 16px;
-      margin-top: 20px;
-    }
+<style>
 
-    button {
-      background: #f0b90b;
-      color: #111827;
-      border: none;
-      border-radius: 12px;
-      padding: 15px;
-      font-size: 16px;
-      font-weight: bold;
-      width: 100%;
-      cursor: pointer;
-    }
+*{box-sizing:border-box}
 
-    button:disabled {
-      opacity: 0.6;
-    }
+body{margin:0;padding:20px 16px 50px;background:#101827;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 
-    .status {
-      color: #94a3b8;
-      font-size: 14px;
-      margin-top: 15px;
-    }
+main{max-width:680px;margin:auto}
 
-    .pool {
-      padding: 14px 0;
-      border-bottom: 1px solid #475569;
-    }
+h1{color:#f0b90b;margin:0 0 5px}
 
-    .pool-name {
-      font-weight: bold;
-      color: #f0b90b;
-      overflow-wrap: anywhere;
-    }
+.sub,.muted{color:#94a3b8}
 
-    .pool-details {
-      font-size: 13px;
-      line-height: 1.8;
-      color: #cbd5e1;
-      overflow-wrap: anywhere;
-    }
+.sub{margin-top:0}
 
-    .success {
-      color: #4ade80;
-    }
+.panel,.pool{background:#1e293b;border-radius:16px;padding:17px;margin-top:15px}
 
-    .error {
-      color: #f87171;
-    }
-  </style>
+button{background:#f0b90b;color:#111827;border:0;border-radius:10px;padding:12px 14px;font-weight:700;font-size:15px;cursor:pointer}
+
+button:disabled{opacity:.5}
+
+.scan{width:100%;margin-top:10px}
+
+.pool h3{margin:0 0 9px;color:#f0b90b;overflow-wrap:anywhere}
+
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:13px 0}
+
+.label{display:block;font-size:12px;color:#94a3b8;margin-bottom:3px}
+
+.value{font-weight:600;overflow-wrap:anywhere}
+
+.up{color:#4ade80}
+
+.down{color:#fb7185}
+
+.address{font-size:12px;overflow-wrap:anywhere;background:#0f172a;padding:10px;border-radius:8px;margin:8px 0}
+
+.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+.actions a{color:#f0b90b;font-weight:600;font-size:14px}
+
+.status{font-size:14px;color:#cbd5e1;white-space:pre-line}
+
+.warning{color:#fbbf24;font-size:13px}
+
+.tag{display:inline-block;font-size:11px;color:#cbd5e1;background:#334155;padding:4px 7px;border-radius:6px;margin-right:5px;margin-bottom:5px}
+
+small{color:#94a3b8}
+
+</style>
+
 </head>
 
 <body>
 
-  <h1>Breakout Radar</h1>
-  <p class="subtitle">BNB Smart Chain Scanner</p>
+<main>
 
-  <div class="card">
-    <h2>Scanner V1</h2>
-    <p>Network: BSC Mainnet</p>
+<h1>Breakout Radar</h1>
 
-    <button id="scanButton" onclick="scanBSC()">
-      Scan BSC
-    </button>
+<p class="sub">BNB Smart Chain · DEX Discovery</p>
 
-    <p id="status" class="status">
-      Ready to scan
-    </p>
-  </div>
+<section class="panel">
 
-  <div id="results" class="card" hidden></div>
+<strong>Scanner V1.1</strong>
 
-  <script>
-    async function scanBSC() {
-      const button =
-        document.getElementById("scanButton");
+<p class="muted">Trending · New · High volume</p>
 
-      const status =
-        document.getElementById("status");
+<button id="scan" class="scan">Scan BSC</button>
 
-      const results =
-        document.getElementById("results");
+<p id="status" class="status">
 
-      button.disabled = true;
-      status.className = "status";
-      status.textContent = "Scanning BSC pools...";
+Ready. Tap Scan BSC to load live pools.
 
-      results.hidden = true;
-      results.replaceChildren();
+</p>
 
-      try {
-        const url =
-          "https://api.geckoterminal.com/api/v2/" +
-          "networks/bsc/trending_pools";
+<small>
 
-        const response = await fetch(url, {
-          headers: {
-            "Accept": "application/json"
-          },
-          cache: "no-store"
-        });
+Free public API. Results are market discovery,
 
-        if (!response.ok) {
-          throw new Error(
-            "API returned HTTP " + response.status
-          );
-        }
+not trading recommendations.
 
-        const json = await response.json();
+Risk checks are not yet implemented.
 
-        if (!Array.isArray(json.data)) {
-          throw new Error("Unexpected API response");
-        }
+</small>
 
-        const pools = json.data;
+</section>
 
-        if (pools.length === 0) {
-          status.textContent =
-            "No BSC pools returned. Try again later.";
-          return;
-        }
+<div id="results"></div>
 
-        const heading = document.createElement("h3");
-        heading.textContent =
-          "Found " + pools.length + " BSC pools";
+</main>
 
-        results.appendChild(heading);
+<script>
 
-        pools.slice(0, 20).forEach(pool => {
-          const a = pool.attributes || {};
+'use strict';
 
-          const card = document.createElement("div");
-          card.className = "pool";
+const API='https://api.geckoterminal.com/api/v2';
 
-          const name = document.createElement("div");
-          name.className = "pool-name";
-          name.textContent =
-            a.name || "Unknown pool";
+const endpoints=[
 
-          const details =
-            document.createElement("div");
-          details.className = "pool-details";
+  ['Trending','/networks/bsc/trending_pools'],
 
-          const price =
-            Number(a.base_token_price_usd);
+  ['New','/networks/bsc/new_pools'],
 
-          const liquidity =
-            Number(a.reserve_in_usd);
+  ['High volume','/networks/bsc/pools?sort=h24_volume_usd_desc']
 
-          const volume =
-            Number(a.volume_usd?.h24);
+];
 
-          function money(value, digits = 2) {
-            if (!Number.isFinite(value)) {
-              return "N/A";
-            }
+const STABLE=new Set([
 
-            return "$" + value.toLocaleString(
-              "en-US", {
-                maximumFractionDigits: digits
-              }
-            );
-          }
+  '0x55d398326f99059ff775485246999027b3197955',
 
-          details.textContent =
-            "Price: " +
-            (Number.isFinite(price) && price > 0
-              ? "$" + price.toPrecision(6)
-              : "N/A") +
-            " | Liquidity: " +
-            money(liquidity) +
-            " | 24h Volume: " +
-            money(volume);
+  '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
 
-          card.append(name, details);
-          results.appendChild(card);
-        });
+  '0xe9e7cea3dedca5984780bafc599bd69add087d56',
 
-        results.hidden = false;
+  '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c'
 
-        status.className = "status success";
-        status.textContent =
-          "Scan completed successfully!";
+]);
 
-      } catch (error) {
-        status.className = "status error";
-        status.textContent =
-          "Scanner error: " + error.message;
-      } finally {
-        button.disabled = false;
-      }
+const $=id=>document.getElementById(id);
+
+function contractFromId(id){
+
+  if(typeof id!=='string')return null;
+
+  const m=id.match(/0x[a-fA-F0-9]{40}$/);
+
+  return m?m[0]:null;
+
+}
+
+function fmtUsd(value){
+
+  if(value===null||value===undefined||value===''){
+
+    return 'N/A';
+
+  }
+
+  const n=Number(value);
+
+  if(!Number.isFinite(n))return 'N/A';
+
+  if(n>0&&n<0.0001){
+
+    return '$'+n.toPrecision(4);
+
+  }
+
+  return '$'+n.toLocaleString('en-US',{
+
+    maximumFractionDigits:n<1?6:2
+
+  });
+
+}
+
+function pickToken(pool){
+
+  const rel=pool.relationships||{};
+
+  const base=contractFromId(
+
+    rel.base_token?.data?.id
+
+  );
+
+  const quote=contractFromId(
+
+    rel.quote_token?.data?.id
+
+  );
+
+  if(!base&&!quote)return null;
+
+  if(base&&quote){
+
+    if(
+
+      STABLE.has(base.toLowerCase()) &&
+
+      !STABLE.has(quote.toLowerCase())
+
+    ){
+
+      return {address:quote,side:'quote'};
+
     }
-  </script>
+
+    if(
+
+      STABLE.has(quote.toLowerCase()) &&
+
+      !STABLE.has(base.toLowerCase())
+
+    ){
+
+      return {address:base,side:'base'};
+
+    }
+
+    if(
+
+      STABLE.has(base.toLowerCase()) &&
+
+      STABLE.has(quote.toLowerCase())
+
+    ){
+
+      return null;
+
+    }
+
+    return {
+
+      address:base,
+
+      side:'base',
+
+      ambiguous:true
+
+    };
+
+  }
+
+  return null;
+
+}
+
+async function getFeed(label,path){
+
+  const response=await fetch(API+path,{
+
+    headers:{Accept:'application/json'},
+
+    cache:'no-store'
+
+  });
+
+  if(!response.ok){
+
+    throw new Error(
+
+      label+' HTTP '+response.status
+
+    );
+
+  }
+
+  const json=await response.json();
+
+  if(!Array.isArray(json.data)){
+
+    throw new Error(
+
+      label+' returned unexpected data'
+
+    );
+
+  }
+
+  return json.data.map(p=>({
+
+    ...p,
+
+    feed:label
+
+  }));
+
+}
+
+async function copyAddress(address,button){
+
+  try{
+
+    if(
+
+      navigator.clipboard &&
+
+      window.isSecureContext
+
+    ){
+
+      await navigator.clipboard.writeText(address);
+
+    }else{
+
+      const field=document.createElement('textarea');
+
+      field.value=address;
+
+      field.style.position='fixed';
+
+      field.style.opacity='0';
+
+      document.body.append(field);
+
+      field.select();
+
+      const ok=document.execCommand('copy');
+
+      field.remove();
+
+      if(!ok){
+
+        throw new Error('Copy not supported');
+
+      }
+
+    }
+
+    button.textContent='Copied!';
+
+    setTimeout(()=>{
+
+      button.textContent='Copy contract';
+
+    },1600);
+
+  }catch(e){
+
+    alert(
+
+      'Copy failed. Long-press the address to copy it.'
+
+    );
+
+  }
+
+}
+
+function addMetric(parent,label,value,cls=''){
+
+  const item=document.createElement('div');
+
+  const l=document.createElement('span');
+
+  l.className='label';
+
+  l.textContent=label;
+
+  const v=document.createElement('span');
+
+  v.className='value '+cls;
+
+  v.textContent=value;
+
+  item.append(l,v);
+
+  parent.append(item);
+
+}
+
+function renderPool(pool){
+
+  const a=pool.attributes||{};
+
+  const token=pickToken(pool);
+
+  const card=document.createElement('article');
+
+  card.className='pool';
+
+  const name=document.createElement('h3');
+
+  name.textContent=a.name||'Unnamed pool';
+
+  card.append(name);
+
+  const tag=document.createElement('span');
+
+  tag.className='tag';
+
+  tag.textContent=pool.feed;
+
+  card.append(tag);
+
+  const dex=document.createElement('span');
+
+  dex.className='tag';
+
+  dex.textContent='BSC';
+
+  card.append(dex);
+
+  const grid=document.createElement('div');
+
+  grid.className='metrics';
+
+  const change=a.price_change_percentage?.h24;
+
+  const changeNum=
+
+    change===null ||
+
+    change===undefined ||
+
+    change===''
+
+    ?NaN:Number(change);
+
+  addMetric(
+
+    grid,
+
+    '24h price change',
+
+    Number.isFinite(changeNum)
+
+      ?(changeNum>0?'+':'')+
+
+       changeNum.toFixed(2)+'%'
+
+      :'N/A',
+
+    Number.isFinite(changeNum)
+
+      ?changeNum>=0?'up':'down'
+
+      :''
+
+  );
+
+  const baseIsTarget=token?.side==='base';
+
+  addMetric(
+
+    grid,
+
+    'Base token price',
+
+    fmtUsd(a.base_token_price_usd)
+
+  );
+
+  addMetric(
+
+    grid,
+
+    'Liquidity',
+
+    fmtUsd(a.reserve_in_usd)
+
+  );
+
+  addMetric(
+
+    grid,
+
+    '24h volume',
+
+    fmtUsd(a.volume_usd?.h24)
+
+  );
+
+  card.append(grid);
+
+  const label=document.createElement('span');
+
+  label.className='label';
+
+  label.textContent='Token contract (BEP-20)';
+
+  card.append(label);
+
+  if(token){
+
+    const addr=document.createElement('div');
+
+    addr.className='address';
+
+    addr.textContent=token.address;
+
+    card.append(addr);
+
+    const actions=document.createElement('div');
+
+    actions.className='actions';
+
+    const copy=document.createElement('button');
+
+    copy.textContent='Copy contract';
+
+    copy.addEventListener('click',()=>{
+
+      copyAddress(token.address,copy);
+
+    });
+
+    actions.append(copy);
+
+    const bsc=document.createElement('a');
+
+    bsc.href=
+
+      'https://bscscan.com/token/'+
+
+      encodeURIComponent(token.address);
+
+    bsc.target='_blank';
+
+    bsc.rel='noopener noreferrer';
+
+    bsc.textContent='BscScan';
+
+    actions.append(bsc);
+
+    card.append(actions);
+
+    if(token.ambiguous){
+
+      const warn=document.createElement('p');
+
+      warn.className='warning';
+
+      warn.textContent=
+
+        'Both sides are non-standard tokens. '+
+
+        'Base token selected; verify the contract before trading.';
+
+      card.append(warn);
+
+    }
+
+    if(!baseIsTarget){
+
+      const warn=document.createElement('p');
+
+      warn.className='warning';
+
+      warn.textContent=
+
+        'Quote token selected; price shown above '+
+
+        'is for the base token, not this contract.';
+
+      card.append(warn);
+
+    }
+
+  }else{
+
+    const warn=document.createElement('p');
+
+    warn.className='warning';
+
+    warn.textContent=
+
+      'Token contract not reliably identified; copy disabled.';
+
+    card.append(warn);
+
+  }
+
+  const poolAddress=contractFromId(pool.id);
+
+  if(poolAddress){
+
+    const link=document.createElement('a');
+
+    link.href=
+
+      'https://www.geckoterminal.com/bsc/pools/'+
+
+      encodeURIComponent(poolAddress);
+
+    link.target='_blank';
+
+    link.rel='noopener noreferrer';
+
+    link.textContent='View pool on GeckoTerminal';
+
+    link.style.cssText=
+
+      'display:inline-block;margin-top:12px;color:#f0b90b';
+
+    card.append(link);
+
+  }
+
+  return card;
+
+}
+
+async function scan(){
+
+  const button=$('scan');
+
+  const status=$('status');
+
+  const results=$('results');
+
+  button.disabled=true;
+
+  results.replaceChildren();
+
+  status.textContent=
+
+    'Scanning three BSC discovery feeds...';
+
+  try{
+
+    const settled=await Promise.allSettled(
+
+      endpoints.map(([label,path])=>
+
+        getFeed(label,path)
+
+      )
+
+    );
+
+    const errors=[];
+
+    const unique=new Map();
+
+    settled.forEach((s,i)=>{
+
+      if(s.status==='rejected'){
+
+        errors.push(
+
+          endpoints[i][0]+': '+s.reason.message
+
+        );
+
+        return;
+
+      }
+
+      s.value.forEach(pool=>{
+
+        if(pool.id&&!unique.has(pool.id)){
+
+          unique.set(pool.id,pool);
+
+        }
+
+      });
+
+    });
+
+    const pools=[...unique.values()]
+
+      .filter(p=>
+
+        Number(p.attributes?.reserve_in_usd)>=10000
+
+      )
+
+      .sort((a,b)=>
+
+        Number(b.attributes?.volume_usd?.h24||0)-
+
+        Number(a.attributes?.volume_usd?.h24||0)
+
+      );
+
+    const shown=pools.slice(0,30);
+
+    shown.forEach(p=>{
+
+      results.append(renderPool(p));
+
+    });
+
+    status.textContent=
+
+      'Found '+unique.size+
+
+      ' unique pools across available feeds. '+
+
+      shown.length+
+
+      ' shown with at least $10,000 liquidity.'+
+
+      (errors.length
+
+        ?'\nSome feeds failed: '+errors.join('; ')
+
+        :''
+
+      );
+
+    if(!shown.length){
+
+      status.textContent+=
+
+        '\nNo qualifying pools returned. Try again later.';
+
+    }
+
+  }catch(err){
+
+    status.textContent=
+
+      'Scanner error: '+err.message;
+
+  }finally{
+
+    button.disabled=false;
+
+  }
+
+}
+
+$('scan').addEventListener('click',scan);
+
+</script>
 
 </body>
+
 </html>
