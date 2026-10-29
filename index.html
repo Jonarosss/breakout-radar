@@ -48,20 +48,74 @@
   </div>
 
   
+
 <script>
 async function testScanner() {
   const result = document.getElementById("result");
 
-  result.textContent = "Scanning BSC...";
+  result.textContent = "Scanning BSC pools...";
 
   try {
     const response = await fetch(
-      "https://api.dexscreener.com/token-profiles/latest/v1"
+      "https://api.geckoterminal.com/api/v2/networks/bsc/trending_pools"
     );
 
     if (!response.ok) {
       throw new Error("API error: " + response.status);
     }
+
+    const json = await response.json();
+    const pools = json.data || [];
+
+    if (pools.length === 0) {
+      result.textContent = "No pools returned.";
+      return;
+    }
+
+    result.replaceChildren();
+
+    const heading = document.createElement("h3");
+    heading.textContent =
+      "Found " + pools.length + " BSC pools";
+    result.appendChild(heading);
+
+    pools.slice(0, 20).forEach(pool => {
+      const a = pool.attributes || {};
+
+      const card = document.createElement("div");
+      card.style.cssText =
+        "padding:12px 0;border-bottom:1px solid #475569";
+
+      const name = document.createElement("strong");
+      name.textContent = a.name || "Unknown pool";
+
+      const details = document.createElement("p");
+      details.style.cssText =
+        "font-size:13px;line-height:1.7";
+
+      const price = Number(a.base_token_price_usd);
+      const liquidity = Number(a.reserve_in_usd);
+      const volume = Number(a.volume_usd?.h24);
+
+      details.textContent =
+        "Price: $" +
+        (Number.isFinite(price) ? price.toPrecision(6) : "N/A") +
+        " | Liquidity: $" +
+        (Number.isFinite(liquidity) ? liquidity.toLocaleString() : "N/A") +
+        " | 24h Volume: $" +
+        (Number.isFinite(volume) ? volume.toLocaleString() : "N/A");
+
+      card.append(name, details);
+      result.appendChild(card);
+    });
+
+  } catch (error) {
+    result.textContent =
+      "Scanner error: " + error.message;
+  }
+}
+</script>
+
 
     const profiles = await response.json();
 
