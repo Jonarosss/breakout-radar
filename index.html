@@ -1,729 +1,657 @@
 
-
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#101827">
-
 <title>Breakout Radar · BSC</title>
 
 <style>
-
 *{box-sizing:border-box}
-
-body{margin:0;padding:20px 16px 50px;background:#101827;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-
+body{
+  margin:0;
+  padding:20px 16px 50px;
+  background:#101827;
+  color:#f8fafc;
+  font-family:-apple-system,BlinkMacSystemFont,
+    "Segoe UI",sans-serif;
+}
 main{max-width:680px;margin:auto}
-
 h1{color:#f0b90b;margin:0 0 5px}
-
 .sub,.muted{color:#94a3b8}
-
 .sub{margin-top:0}
-
-.panel,.pool{background:#1e293b;border-radius:16px;padding:17px;margin-top:15px}
-
-button{background:#f0b90b;color:#111827;border:0;border-radius:10px;padding:12px 14px;font-weight:700;font-size:15px;cursor:pointer}
-
+.panel,.pool{
+  background:#1e293b;
+  border-radius:16px;
+  padding:17px;
+  margin-top:15px;
+}
+button{
+  background:#f0b90b;
+  color:#111827;
+  border:0;
+  border-radius:10px;
+  padding:12px 14px;
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
+}
 button:disabled{opacity:.5}
-
 .scan{width:100%;margin-top:10px}
-
-.pool h3{margin:0 0 9px;color:#f0b90b;overflow-wrap:anywhere}
-
-.metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:13px 0}
-
-.label{display:block;font-size:12px;color:#94a3b8;margin-bottom:3px}
-
-.value{font-weight:600;overflow-wrap:anywhere}
-
+.pool h3{
+  margin:0 0 9px;
+  color:#f0b90b;
+  overflow-wrap:anywhere;
+}
+.metrics{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin:13px 0;
+}
+.label{
+  display:block;
+  font-size:12px;
+  color:#94a3b8;
+  margin-bottom:3px;
+}
+.value{
+  font-weight:600;
+  overflow-wrap:anywhere;
+}
 .up{color:#4ade80}
-
 .down{color:#fb7185}
-
-.address{font-size:12px;overflow-wrap:anywhere;background:#0f172a;padding:10px;border-radius:8px;margin:8px 0}
-
-.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-
-.actions a{color:#f0b90b;font-weight:600;font-size:14px}
-
-.status{font-size:14px;color:#cbd5e1;white-space:pre-line}
-
+.address{
+  font-size:12px;
+  overflow-wrap:anywhere;
+  background:#0f172a;
+  padding:10px;
+  border-radius:8px;
+  margin:8px 0;
+}
+.actions{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.actions a{
+  color:#f0b90b;
+  font-weight:600;
+  font-size:14px;
+}
+.status{
+  font-size:14px;
+  color:#cbd5e1;
+  white-space:pre-line;
+}
 .warning{color:#fbbf24;font-size:13px}
-
-.tag{display:inline-block;font-size:11px;color:#cbd5e1;background:#334155;padding:4px 7px;border-radius:6px;margin-right:5px;margin-bottom:5px}
-
+.tag{
+  display:inline-block;
+  font-size:11px;
+  color:#cbd5e1;
+  background:#334155;
+  padding:4px 7px;
+  border-radius:6px;
+  margin-right:5px;
+  margin-bottom:5px;
+}
+.score-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin:12px 0 7px;
+}
+.score-number{
+  font-size:23px;
+  font-weight:800;
+}
+.score-track{
+  height:9px;
+  border-radius:20px;
+  background:#475569;
+  overflow:hidden;
+}
+.score-fill{
+  height:100%;
+  border-radius:20px;
+}
 small{color:#94a3b8}
-
 </style>
-
 </head>
 
 <body>
-
 <main>
-
 <h1>Breakout Radar</h1>
-
 <p class="sub">BNB Smart Chain · DEX Discovery</p>
 
 <section class="panel">
+  <strong>Scanner V1.2</strong>
+  <p class="muted">
+    Trending · New · High volume
+  </p>
 
-<strong>Scanner V1.1</strong>
+  <button id="scan" class="scan">
+    Scan BSC
+  </button>
 
-<p class="muted">Trending · New · High volume</p>
+  <p id="status" class="status">
+    Ready. Tap Scan BSC to load live pools.
+  </p>
 
-<button id="scan" class="scan">Scan BSC</button>
-
-<p id="status" class="status">
-
-Ready. Tap Scan BSC to load live pools.
-
-</p>
-
-<small>
-
-Free public API. Results are market discovery,
-
-not trading recommendations.
-
-Risk checks are not yet implemented.
-
-</small>
-
+  <small>
+    Scores are experimental screening signals,
+    not trading recommendations or contract
+    safety checks.
+  </small>
 </section>
 
 <div id="results"></div>
-
 </main>
 
 <script>
-
 'use strict';
 
 const API='https://api.geckoterminal.com/api/v2';
 
 const endpoints=[
-
   ['Trending','/networks/bsc/trending_pools'],
-
   ['New','/networks/bsc/new_pools'],
-
   ['High volume','/networks/bsc/pools?sort=h24_volume_usd_desc']
-
 ];
 
-const STABLE=new Set([
-
+const COMMON=new Set([
+  // USDT
   '0x55d398326f99059ff775485246999027b3197955',
-
+  // USDC
   '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
-
+  // BUSD
   '0xe9e7cea3dedca5984780bafc599bd69add087d56',
-
+  // WBNB
   '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c'
-
 ]);
 
 const $=id=>document.getElementById(id);
 
 function contractFromId(id){
-
   if(typeof id!=='string')return null;
+  const match=id.match(/0x[a-fA-F0-9]{40}$/);
+  return match?match[0]:null;
+}
 
-  const m=id.match(/0x[a-fA-F0-9]{40}$/);
-
-  return m?m[0]:null;
-
+function numberOrNaN(value){
+  if(
+    value===null ||
+    value===undefined ||
+    value===''
+  ){
+    return NaN;
+  }
+  return Number(value);
 }
 
 function fmtUsd(value){
-
-  if(value===null||value===undefined||value===''){
-
-    return 'N/A';
-
-  }
-
-  const n=Number(value);
-
+  const n=numberOrNaN(value);
   if(!Number.isFinite(n))return 'N/A';
 
   if(n>0&&n<0.0001){
-
     return '$'+n.toPrecision(4);
-
   }
 
   return '$'+n.toLocaleString('en-US',{
-
     maximumFractionDigits:n<1?6:2
-
   });
-
 }
 
 function pickToken(pool){
-
   const rel=pool.relationships||{};
 
   const base=contractFromId(
-
     rel.base_token?.data?.id
-
   );
 
   const quote=contractFromId(
-
     rel.quote_token?.data?.id
-
   );
 
-  if(!base&&!quote)return null;
+  if(!base||!quote)return null;
 
-  if(base&&quote){
+  const baseCommon=COMMON.has(base.toLowerCase());
+  const quoteCommon=COMMON.has(quote.toLowerCase());
 
-    if(
+  if(baseCommon&&quoteCommon)return null;
 
-      STABLE.has(base.toLowerCase()) &&
-
-      !STABLE.has(quote.toLowerCase())
-
-    ){
-
-      return {address:quote,side:'quote'};
-
-    }
-
-    if(
-
-      STABLE.has(quote.toLowerCase()) &&
-
-      !STABLE.has(base.toLowerCase())
-
-    ){
-
-      return {address:base,side:'base'};
-
-    }
-
-    if(
-
-      STABLE.has(base.toLowerCase()) &&
-
-      STABLE.has(quote.toLowerCase())
-
-    ){
-
-      return null;
-
-    }
-
+  if(baseCommon&&!quoteCommon){
     return {
-
-      address:base,
-
-      side:'base',
-
-      ambiguous:true
-
+      address:quote,
+      side:'quote',
+      ambiguous:false
     };
-
   }
 
-  return null;
+  if(quoteCommon&&!baseCommon){
+    return {
+      address:base,
+      side:'base',
+      ambiguous:false
+    };
+  }
 
+  return {
+    address:base,
+    side:'base',
+    ambiguous:true
+  };
+}
+
+function breakoutScore(pool){
+  const a=pool.attributes||{};
+
+  const change=numberOrNaN(
+    a.price_change_percentage?.h24
+  );
+
+  const volume=numberOrNaN(
+    a.volume_usd?.h24
+  );
+
+  const liquidity=numberOrNaN(
+    a.reserve_in_usd
+  );
+
+  const ratio=
+    Number.isFinite(volume) &&
+    Number.isFinite(liquidity) &&
+    liquidity>0
+    ?volume/liquidity
+    :NaN;
+
+  let score=0;
+
+  if(
+    Number.isFinite(change) &&
+    change>=-5 &&
+    change<=15
+  ){
+    score+=25;
+  }
+
+  if(
+    Number.isFinite(volume) &&
+    volume>=50000
+  ){
+    score+=25;
+  }
+
+  if(
+    Number.isFinite(liquidity) &&
+    liquidity>=25000
+  ){
+    score+=25;
+  }
+
+  if(
+    Number.isFinite(ratio) &&
+    ratio>=0.5
+  ){
+    score+=25;
+  }
+
+  return {score,ratio};
 }
 
 async function getFeed(label,path){
-
   const response=await fetch(API+path,{
-
     headers:{Accept:'application/json'},
-
     cache:'no-store'
-
   });
 
   if(!response.ok){
-
     throw new Error(
-
       label+' HTTP '+response.status
-
     );
-
   }
 
   const json=await response.json();
 
   if(!Array.isArray(json.data)){
-
     throw new Error(
-
       label+' returned unexpected data'
-
     );
-
   }
 
-  return json.data.map(p=>({
-
-    ...p,
-
+  return json.data.map(pool=>({
+    ...pool,
     feed:label
-
   }));
-
 }
 
 async function copyAddress(address,button){
-
   try{
-
     if(
-
       navigator.clipboard &&
-
       window.isSecureContext
-
     ){
-
       await navigator.clipboard.writeText(address);
-
     }else{
-
       const field=document.createElement('textarea');
-
       field.value=address;
-
       field.style.position='fixed';
-
       field.style.opacity='0';
-
       document.body.append(field);
-
       field.select();
 
       const ok=document.execCommand('copy');
-
       field.remove();
 
-      if(!ok){
-
-        throw new Error('Copy not supported');
-
-      }
-
+      if(!ok)throw new Error('Copy unavailable');
     }
 
     button.textContent='Copied!';
 
     setTimeout(()=>{
-
       button.textContent='Copy contract';
-
     },1600);
 
-  }catch(e){
-
+  }catch(error){
     alert(
-
-      'Copy failed. Long-press the address to copy it.'
-
+      'Copy failed. Long-press the address to copy.'
     );
-
   }
-
 }
 
 function addMetric(parent,label,value,cls=''){
-
   const item=document.createElement('div');
 
   const l=document.createElement('span');
-
   l.className='label';
-
   l.textContent=label;
 
   const v=document.createElement('span');
-
   v.className='value '+cls;
-
   v.textContent=value;
 
   item.append(l,v);
-
   parent.append(item);
-
 }
 
 function renderPool(pool){
-
   const a=pool.attributes||{};
-
   const token=pickToken(pool);
+  const signal=breakoutScore(pool);
 
   const card=document.createElement('article');
-
   card.className='pool';
 
   const name=document.createElement('h3');
-
   name.textContent=a.name||'Unnamed pool';
-
   card.append(name);
 
   const tag=document.createElement('span');
-
   tag.className='tag';
-
   tag.textContent=pool.feed;
-
   card.append(tag);
 
-  const dex=document.createElement('span');
+  const chain=document.createElement('span');
+  chain.className='tag';
+  chain.textContent='BSC';
+  card.append(chain);
 
-  dex.className='tag';
+  // Breakout score
+  const scoreRow=document.createElement('div');
+  scoreRow.className='score-row';
 
-  dex.textContent='BSC';
+  const scoreLabel=document.createElement('strong');
+  scoreLabel.textContent='Breakout Score';
 
-  card.append(dex);
+  const scoreValue=document.createElement('span');
+  scoreValue.className='score-number';
+  scoreValue.textContent=signal.score+'/100';
 
+  const scoreColor=
+    signal.score>=75?'#4ade80':
+    signal.score>=50?'#f0b90b':
+    '#fb7185';
+
+  scoreValue.style.color=scoreColor;
+
+  scoreRow.append(scoreLabel,scoreValue);
+  card.append(scoreRow);
+
+  const track=document.createElement('div');
+  track.className='score-track';
+
+  const fill=document.createElement('div');
+  fill.className='score-fill';
+  fill.style.width=signal.score+'%';
+  fill.style.background=scoreColor;
+
+  track.append(fill);
+  card.append(track);
+
+  // Pool metrics
   const grid=document.createElement('div');
-
   grid.className='metrics';
 
-  const change=a.price_change_percentage?.h24;
-
-  const changeNum=
-
-    change===null ||
-
-    change===undefined ||
-
-    change===''
-
-    ?NaN:Number(change);
+  const change=numberOrNaN(
+    a.price_change_percentage?.h24
+  );
 
   addMetric(
-
     grid,
-
     '24h price change',
-
-    Number.isFinite(changeNum)
-
-      ?(changeNum>0?'+':'')+
-
-       changeNum.toFixed(2)+'%'
-
+    Number.isFinite(change)
+      ?(change>0?'+':'')+
+       change.toFixed(2)+'%'
       :'N/A',
-
-    Number.isFinite(changeNum)
-
-      ?changeNum>=0?'up':'down'
-
+    Number.isFinite(change)
+      ?change>=0?'up':'down'
       :''
-
   );
 
-  const baseIsTarget=token?.side==='base';
-
   addMetric(
-
     grid,
-
     'Base token price',
-
     fmtUsd(a.base_token_price_usd)
-
   );
 
   addMetric(
-
     grid,
-
     'Liquidity',
-
     fmtUsd(a.reserve_in_usd)
-
   );
 
   addMetric(
-
     grid,
-
     '24h volume',
-
     fmtUsd(a.volume_usd?.h24)
+  );
 
+  addMetric(
+    grid,
+    'Volume / liquidity',
+    Number.isFinite(signal.ratio)
+      ?signal.ratio.toFixed(2)+'x'
+      :'N/A'
   );
 
   card.append(grid);
 
-  const label=document.createElement('span');
-
-  label.className='label';
-
-  label.textContent='Token contract (BEP-20)';
-
-  card.append(label);
+  // Contract
+  const contractLabel=document.createElement('span');
+  contractLabel.className='label';
+  contractLabel.textContent='Token contract (BEP-20)';
+  card.append(contractLabel);
 
   if(token){
-
-    const addr=document.createElement('div');
-
-    addr.className='address';
-
-    addr.textContent=token.address;
-
-    card.append(addr);
+    const address=document.createElement('div');
+    address.className='address';
+    address.textContent=token.address;
+    card.append(address);
 
     const actions=document.createElement('div');
-
     actions.className='actions';
 
     const copy=document.createElement('button');
-
     copy.textContent='Copy contract';
 
     copy.addEventListener('click',()=>{
-
       copyAddress(token.address,copy);
-
     });
 
     actions.append(copy);
 
     const bsc=document.createElement('a');
-
     bsc.href=
-
       'https://bscscan.com/token/'+
-
       encodeURIComponent(token.address);
 
     bsc.target='_blank';
-
     bsc.rel='noopener noreferrer';
-
     bsc.textContent='BscScan';
 
     actions.append(bsc);
-
     card.append(actions);
 
     if(token.ambiguous){
-
-      const warn=document.createElement('p');
-
-      warn.className='warning';
-
-      warn.textContent=
-
-        'Both sides are non-standard tokens. '+
-
-        'Base token selected; verify the contract before trading.';
-
-      card.append(warn);
-
+      const warning=document.createElement('p');
+      warning.className='warning';
+      warning.textContent=
+        'Both tokens are non-standard. '+
+        'Base token selected; verify before trading.';
+      card.append(warning);
     }
 
-    if(!baseIsTarget){
-
-      const warn=document.createElement('p');
-
-      warn.className='warning';
-
-      warn.textContent=
-
-        'Quote token selected; price shown above '+
-
-        'is for the base token, not this contract.';
-
-      card.append(warn);
-
+    if(token.side==='quote'){
+      const warning=document.createElement('p');
+      warning.className='warning';
+      warning.textContent=
+        'Quote token selected. Displayed base-token '+
+        'price and change may not represent this token.';
+      card.append(warning);
     }
 
   }else{
-
-    const warn=document.createElement('p');
-
-    warn.className='warning';
-
-    warn.textContent=
-
-      'Token contract not reliably identified; copy disabled.';
-
-    card.append(warn);
-
+    const warning=document.createElement('p');
+    warning.className='warning';
+    warning.textContent=
+      'Target token cannot be reliably identified. '+
+      'Contract copying disabled.';
+    card.append(warning);
   }
 
+  // GeckoTerminal link
   const poolAddress=contractFromId(pool.id);
 
   if(poolAddress){
-
     const link=document.createElement('a');
 
     link.href=
-
       'https://www.geckoterminal.com/bsc/pools/'+
-
       encodeURIComponent(poolAddress);
 
     link.target='_blank';
-
     link.rel='noopener noreferrer';
-
     link.textContent='View pool on GeckoTerminal';
 
     link.style.cssText=
-
       'display:inline-block;margin-top:12px;color:#f0b90b';
 
     card.append(link);
-
   }
 
   return card;
-
 }
 
 async function scan(){
-
   const button=$('scan');
-
   const status=$('status');
-
   const results=$('results');
 
   button.disabled=true;
-
   results.replaceChildren();
 
   status.textContent=
-
-    'Scanning three BSC discovery feeds...';
+    'Scanning and scoring BSC pools...';
 
   try{
-
     const settled=await Promise.allSettled(
-
       endpoints.map(([label,path])=>
-
         getFeed(label,path)
-
       )
-
     );
 
     const errors=[];
-
     const unique=new Map();
 
-    settled.forEach((s,i)=>{
-
-      if(s.status==='rejected'){
-
+    settled.forEach((result,index)=>{
+      if(result.status==='rejected'){
         errors.push(
-
-          endpoints[i][0]+': '+s.reason.message
-
+          endpoints[index][0]+': '+
+          result.reason.message
         );
-
         return;
-
       }
 
-      s.value.forEach(pool=>{
-
+      result.value.forEach(pool=>{
         if(pool.id&&!unique.has(pool.id)){
-
           unique.set(pool.id,pool);
-
         }
-
       });
-
     });
 
-    const pools=[...unique.values()]
+    // Score every retrieved pool before ranking.
+    const ranked=[...unique.values()]
+      .map(pool=>({
+        pool,
+        signal:breakoutScore(pool)
+      }))
+      .sort((a,b)=>{
+        const scoreDifference=
+          b.signal.score-a.signal.score;
 
-      .filter(p=>
+        if(scoreDifference!==0){
+          return scoreDifference;
+        }
 
-        Number(p.attributes?.reserve_in_usd)>=10000
+        return (
+          Number(b.pool.attributes?.volume_usd?.h24||0)-
+          Number(a.pool.attributes?.volume_usd?.h24||0)
+        );
+      });
 
-      )
+    const shown=ranked.slice(0,30);
 
-      .sort((a,b)=>
-
-        Number(b.attributes?.volume_usd?.h24||0)-
-
-        Number(a.attributes?.volume_usd?.h24||0)
-
-      );
-
-    const shown=pools.slice(0,30);
-
-    shown.forEach(p=>{
-
-      results.append(renderPool(p));
-
+    shown.forEach(item=>{
+      results.append(renderPool(item.pool));
     });
 
     status.textContent=
-
-      'Found '+unique.size+
-
-      ' unique pools across available feeds. '+
-
-      shown.length+
-
-      ' shown with at least $10,000 liquidity.'+
-
+      'Discovered '+unique.size+
+      ' unique pools. Scored '+ranked.length+
+      '. Showing the top '+shown.length+
+      ' by Breakout Score.'+
       (errors.length
-
-        ?'\nSome feeds failed: '+errors.join('; ')
-
+        ?'\nFeed warnings: '+errors.join('; ')
         :''
-
       );
 
     if(!shown.length){
-
       status.textContent+=
-
-        '\nNo qualifying pools returned. Try again later.';
-
+        '\nNo pools returned. Try again later.';
     }
 
-  }catch(err){
-
+  }catch(error){
     status.textContent=
-
-      'Scanner error: '+err.message;
-
+      'Scanner error: '+error.message;
   }finally{
-
     button.disabled=false;
-
   }
-
 }
 
 $('scan').addEventListener('click',scan);
-
 </script>
-
 </body>
-
 </html>
