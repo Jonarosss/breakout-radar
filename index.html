@@ -47,12 +47,39 @@
     <p id="result"></p>
   </div>
 
-  <script>
-    function testScanner() {
-      document.getElementById("result")
-        .textContent =
-        "Scanner interface working!";
+  
+<script>
+async function testScanner() {
+  const result = document.getElementById("result");
+
+  result.textContent = "Scanning BSC...";
+
+  try {
+    const response = await fetch(
+      "https://api.dexscreener.com/token-profiles/latest/v1"
+    );
+
+    if (!response.ok) {
+      throw new Error("API error: " + response.status);
     }
-  </script>
+
+    const profiles = await response.json();
+
+    const bscTokens = profiles.filter(
+      token => token.chainId === "bsc"
+    );
+
+    result.textContent =
+      "API connected! Found " +
+      bscTokens.length +
+      " BSC token profiles in the latest batch.";
+
+  } catch (error) {
+    result.textContent =
+      "Connection error: " + error.message;
+  }
+}
+</script>
+
 </body>
 </html>
